@@ -1,0 +1,213 @@
+<!--
+  ©️ Dan Gazizullin, 2021-2023
+  This file is a part of Hikka Userbot
+  🌐 https://github.com/hikariatama/Hikka
+  You can redistribute it and/or modify it under the terms of the GNU AGPLv3
+  🔑 https://www.gnu.org/licenses/agpl-3.0.html
+-->
+
+{% extends "base.jinja2" %}
+
+{% block head %}
+<script src="//cdnjs.cloudflare.com/ajax/libs/jquery-cookie/1.4.1/jquery.cookie.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/bodymovin/5.8.1/lottie.min.js"></script>
+<script src="{{ static("sakura.min.js") }}"></script>
+<script src="//unpkg.com/@dotlottie/player-component@1.0.0/dist/dotlottie-player.js"></script>
+<script src="//unpkg.com/qr-code-styling@1.5.0/lib/qr-code-styling.js"></script>
+
+<link href="{{ static("sakura.min.css") }}" rel="stylesheet">
+<link href="https://css.gg/css?=arrow-right-r|add|brackets|chevron-right-o|smartphone" rel="stylesheet">
+
+<link rel="stylesheet" href="{{ static("base.min.css") }}">
+{% endblock %}
+
+{% block content %}
+{% endblock %}
+
+{% block after %}
+<div class="bg">
+  <div class="bg_inner"></div>
+</div>
+<div class="blur auth vert_center">
+  <div id="tg_icon"></div>
+  <div class="waiting_for_auth">Ожидание аутентификации...</div>
+  <div class="confirm_auth">Пожалуйста, подтвердите действие в <span style="color:#28a0dc">Telegram</span></div>
+</div>
+<div class="auth-code-form blur">
+  <div id="monkey"></div>
+  <div id="monkey-close"></div>
+  <span class="code-caption">Введите код, полученный от Telegram</span>
+  <input type="text" class="code-input" autocomplete="off">
+  <div class="enter">Ввод</div>
+</div>
+<div class="eula-form blur">
+  <div class="vert_center" style="height: 100%">
+    <div>
+      <div id="law"></div>
+      <br><br>
+      <span class="code-caption">Вам <span style="color:#c54245">запрещено</span> добавлять более 1 аккаунта на текущей платформе согласно ее EULA.</span>
+    </div>
+  </div>
+</div>
+<div class="wrapper">
+  <div class="blur main finish_block">
+    <div id="installation_icon"></div>
+    <div class="title">Hikka установлена</div>
+    <div class="description">
+      Hikka установлена. Теперь вы можете закрыть эту страницу.
+      <br>
+      <b>Полная установка может занять некоторое время. Пожалуйста, подождите.</b>
+      <br>
+      <span style="font-size: 24px;">Проверьте <span style="color:#28a0dc">Telegram</span> на наличие сообщения от вашего <b>инлайн-бота</b></span>
+    </div>
+  </div>
+  <div class="blur main installation">
+    <div class="title">
+      <div class="hikka_label">
+        <div class="label_inner">
+          <img src="{{ platform_emoji }}" class="moon">
+          &nbsp;Hikka
+        </div>
+      </div>
+    </div><br>
+    <div class="description">Непостижимо <span style="color:#c54245">лучший</span> юзербот<br><span
+        style="color: #18cc18; display: none" class="authorized">Авторизован!</span></div>
+    <div class="center">
+      {% if not tg_done %}
+      <div class="button" id="get_started">
+        <div class="horiz_center">
+          <div class="vert_center">
+            Начать
+          </div>
+
+          <div class="vert_center">
+            <i class="gg-arrow-right-r"></i>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <div class="button" id="get_started">
+        <div class="horiz_center">
+          <div class="vert_center">
+            Добавить
+          </div>
+
+          <div class="vert_center">
+            <i class="gg-add"></i>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+      {% if skip_creds and not lavhost %}
+      <div class="button" id="enter_api">
+        <div class="horiz_center">
+          <div class="vert_center">
+            Сменить API ключи
+          </div>
+
+          <div class="vert_center">
+            <i class="gg-brackets"></i>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+      <span id="block_api_id">
+        <label class="api_id" for="api_id">Telegram API ID: </label>
+        <input class="api_id" id="api_id" placeholder="••••" style="width: 4em;">
+      </span>
+      <span id="block_api_hash">
+        <label class="api_hash" for="api_hash">Telegram API hash: </label>
+        <input class="api_hash" id="api_hash" placeholder="••••••••••••••••••••••••••••••••" style="width: 24em;">
+      </span>
+      <span id="block_phone">
+        <label class="phone" for="phone">Телефон: </label>
+        <input class="phone" id="phone" placeholder="••••••••••••" style="width: 12em;">
+      </span>
+      <span id="block_custom_bot">
+        <label class="custom_bot" for="custom_bot">Юзернейм инлайн-бота (например @username_bot): </label>
+        <input class="custom_bot" id="custom_bot" placeholder="Оставьте пустым для автоматической генерации"
+          style="width: 20em;" type="text">
+      </span>
+      <span id="block_qr_login">
+        <div class="qr_outer">
+          <div class="qr_inner">
+            <dotlottie-player
+              autoplay
+              loop
+              mode="normal"
+              src="https://static.hikari.gay/4T7FajtZbx.lottie"
+              style="width: 100px; height: 100px"
+            >
+            </dotlottie-player>
+          </div>
+        </div>
+        <div class="tg_guide">
+          <ol>
+            <li>
+              <span>Откройте Telegram на телефоне</span>
+            </li>
+            <li>
+              <span>Перейдите в <b>Настройки</b> → <b>Устройства</b> → <b>Подключить устройство</b></span>
+            </li>
+            <li>
+              <span>Наведите камеру на этот экран для подтверждения входа</span>
+            </li>
+          </ol>
+        </div>
+      </span>
+    </div>
+
+    <div class="horiz_center">
+      <div id="continue_btn" class="button">
+        <div class="horiz_center">
+          <div class="vert_center">
+            Продолжить
+          </div>
+
+          <div class="vert_center">
+            <i class="gg-chevron-right-o"></i>
+          </div>
+        </div>
+      </div>
+      <div id="denyqr" class="button">
+        <div class="horiz_center">
+          <div class="vert_center">
+            Войти по номеру телефона
+          </div>
+
+          <div class="vert_center">
+            <i class="gg-smartphone"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div id="root">
+
+  </div>
+</div>
+<div class="lights">
+  <div class="light x1"></div>
+  <div class="light x2"></div>
+  <div class="light x3"></div>
+  <div class="light x4"></div>
+  <div class="light x5"></div>
+  <div class="light x6"></div>
+  <div class="light x7"></div>
+  <div class="light x8"></div>
+  <div class="light x9"></div>
+</div>
+<script>
+  var skip_creds = "{{ skip_creds }}" == "True";
+  var auth_required = true;
+  fetch("/check_session", {
+      method: "POST",
+      credentials: "include"
+    })
+    .then(response => response.text())
+    .then((response) => {
+      auth_required = response != "1";
+    })
+</script>
+<script src="{{ static("root.min.js") }}"></script>
+{% endblock %}
