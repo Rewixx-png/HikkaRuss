@@ -63,6 +63,13 @@ class Web:
         self.data_root = kwargs.pop("data_root")
         self.connection = kwargs.pop("connection")
         self.proxy = kwargs.pop("proxy")
+        
+        # Hardcode fallback just in case
+        if not self.api_token:
+             self.api_token = collections.namedtuple("api_token", ("ID", "HASH"))(
+                "27845500",
+                "85503ef6dbe72f9cfd501c00d6680ff7"
+            )
 
         self.app.router.add_get("/", self.root)
         self.app.router.add_put("/set_api", self.set_tg_api)
@@ -103,7 +110,7 @@ class Web:
     @aiohttp_jinja2.template("root.jinja2")
     async def root(self, _):
         return {
-            "skip_creds": self.api_token is not None,
+            "skip_creds": True, # Always skip credentials input
             "tg_done": bool(self.client_data),
             "lavhost": "LAVHOST" in os.environ,
             "platform_emoji": self._platform_emoji,
@@ -187,37 +194,7 @@ class Web:
         return web.Response(body="OK")
 
     async def set_tg_api(self, request: web.Request) -> web.Response:
-        if not self._check_session(request):
-            return web.Response(status=401, body="Требуется авторизация")
-
-        text = await request.text()
-
-        if len(text) < 36:
-            return web.Response(
-                status=400,
-                body="Пара API ID и HASH имеет неверную длину",
-            )
-
-        api_id = text[32:]
-        api_hash = text[:32]
-
-        if any(c not in string.hexdigits for c in api_hash) or any(
-            c not in string.digits for c in api_id
-        ):
-            return web.Response(
-                status=400,
-                body="Вы указали неверный API ID и/или API HASH",
-            )
-
-        main.save_config_key("api_id", int(api_id))
-        main.save_config_key("api_hash", api_hash)
-
-        self.api_token = collections.namedtuple("api_token", ("ID", "HASH"))(
-            api_id,
-            api_hash,
-        )
-
-        self.api_set.set()
+        # API credentials are hardcoded, so we ignore attempts to set them.
         return web.Response(body="ok")
 
     async def _qr_login_poll(self):

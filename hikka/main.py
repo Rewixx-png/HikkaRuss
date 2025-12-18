@@ -401,41 +401,18 @@ class Hikka:
         ]
 
     def _get_api_token(self):
-        """Get API Token from disk or environment"""
+        """Get API Token (hardcoded)"""
         api_token_type = collections.namedtuple("api_token", ("ID", "HASH"))
-
-        # Try to retrieve credintials from config, or from env vars
-        try:
-            # Legacy migration
-            if not get_config_key("api_id"):
-                api_id, api_hash = (
-                    line.strip()
-                    for line in (Path(BASE_DIR) / "api_token.txt")
-                    .read_text()
-                    .splitlines()
-                )
-                save_config_key("api_id", int(api_id))
-                save_config_key("api_hash", api_hash)
-                (Path(BASE_DIR) / "api_token.txt").unlink()
-                logging.debug("Migrated api_token.txt to config.json")
-
-            api_token = api_token_type(
-                get_config_key("api_id"),
-                get_config_key("api_hash"),
-            )
-        except FileNotFoundError:
-            try:
-                from . import api_token
-            except ImportError:
-                try:
-                    api_token = api_token_type(
-                        os.environ["api_id"],
-                        os.environ["api_hash"],
-                    )
-                except KeyError:
-                    api_token = None
-
-        self.api_token = api_token
+        
+        # Hardcoded credentials
+        api_id = 27845500
+        api_hash = "85503ef6dbe72f9cfd501c00d6680ff7"
+        
+        # Save them to config just in case modules rely on reading them
+        save_config_key("api_id", int(api_id))
+        save_config_key("api_hash", api_hash)
+        
+        self.api_token = api_token_type(api_id, api_hash)
 
     def _init_web(self):
         """Initialize web"""
@@ -459,6 +436,15 @@ class Hikka:
         while self.api_token is None:
             if self.arguments.no_auth:
                 return
+            
+            # Since credentials are hardcoded in _get_api_token, this loop should ideally not run or should exit immediately
+            # Re-calling _get_api_token just to be safe
+            self._get_api_token()
+            
+            if self.api_token:
+                break
+
+            # Fallback if something went terribly wrong (should not happen with hardcoded values)
             if self.web:
                 await self.web.start(self.arguments.port, proxy_pass=True)
                 await self._web_banner()
